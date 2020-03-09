@@ -1,6 +1,7 @@
 import functools
 import logging
 
+import marshmallow
 import yaml
 from flask import request
 from marshmallow import fields
@@ -20,7 +21,6 @@ FIELDS_JSON_TYPE_MAP = {
     fields.Nested: 'object',
     fields.Dict: 'object',
     fields.List: 'array',
-    fields.Tuple: 'array',
     fields.String: 'string',
     fields.UUID: 'string',
     fields.Number: 'number',
@@ -29,8 +29,6 @@ FIELDS_JSON_TYPE_MAP = {
     fields.Boolean: 'bool',
     fields.Float: 'number',
     fields.DateTime: 'string',
-    fields.NaiveDateTime: 'string',
-    fields.AwareDateTime: 'string',
     fields.Time: 'string',
     fields.Date: 'string',
     fields.TimeDelta: 'number',
@@ -41,6 +39,13 @@ FIELDS_JSON_TYPE_MAP = {
     fields.Bool: 'bool',
     fields.Int: 'number',
 }
+
+if int(marshmallow.__version__.split('.')[1]) == 3:
+    FIELDS_JSON_TYPE_MAP.update({
+        fields.NaiveDateTime: 'string',
+        fields.AwareDateTime: 'string',
+        fields.Tuple: 'array',
+    })
 
 
 def unpack(value):

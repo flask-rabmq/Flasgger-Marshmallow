@@ -23,6 +23,9 @@ class MobileSchema(Schema):
     model = fields.String(required=True, doc='手机型号')
     no = fields.String(required=True, doc='手机编号')
 
+    class Meta:
+        strict = True
+
 
 class UserJsonSchema(Schema):
     username = fields.Str(required=True, doc='用户名')
@@ -32,18 +35,30 @@ class UserJsonSchema(Schema):
     image = fields.URL(required=False, doc='用户头像')
     mobile = fields.Nested(MobileSchema, many=False)
 
+    class Meta:
+        strict = True
+
 
 class CreateUserJsonSchema(UserJsonSchema):
     pass
+
+    class Meta:
+        strict = True
 
 
 class CreateUserSuccessResponse(Schema):
     id = fields.Number(required=True)
 
+    class Meta:
+        strict = True
+
 
 class QueryUserSchema(Schema):
     id = fields.Int(required=False, doc='用户ID')
     username = fields.String(required=False, doc='用户名')
+
+    class Meta:
+        strict = True
 
 
 class GetUserResponseSchema(Schema):
@@ -54,10 +69,16 @@ class GetUserResponseSchema(Schema):
     count = fields.Integer(required=True, default=0, doc='用户数量')
     page = fields.Integer(required=True, default=1, doc='当前页码')
 
+    class Meta:
+        strict = True
+
 
 class UserDetailResponseSchema(UserJsonSchema):
     """用户详情"""
     pass
+
+    class Meta:
+        strict = True
 
 
 class responseHeadersSchema(Schema):
@@ -66,6 +87,9 @@ class responseHeadersSchema(Schema):
         required=True, default=1, doc='Request limit per hour',
         data_key='X-RateLimit-Limit'
     )
+
+    class Meta:
+        strict = True
 
 
 class HeadersSchema(Schema):
@@ -85,6 +109,7 @@ class RedirectResponseSchema(Schema):
 
     class Meta:
         headers = responseHeadersSchema
+        strict = True
 
 
 class User(Resource):
@@ -113,10 +138,16 @@ class User(Resource):
 class UsernamePathSchema(Schema):
     username = fields.String(required=False, doc='用户名')
 
+    class Meta:
+        strict = True
+
 
 class UpdateUserSchema(Schema):
     email = fields.Email(required=False, doc='用户邮箱')
     image = fields.Url(required=False, doc='用户头像')
+
+    class Meta:
+        strict = True
 
 
 class Username(Resource):
