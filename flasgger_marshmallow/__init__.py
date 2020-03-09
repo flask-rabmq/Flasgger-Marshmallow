@@ -186,10 +186,10 @@ def swagger_decorator(
             )
             logger.info('headers: %s\n', header_params)
             try:
-                path_schema and path_schema().load(path_params)
-                query_schema and query_schema().load(query_params)
-                form_schema and form_schema().load(form_params)
-                json_schema and json_schema().load(json_params)
+                path_schema and path_schema().load(path_params or {})
+                query_schema and query_schema().load(query_params or {})
+                form_schema and form_schema().load(form_params or {})
+                json_schema and json_schema().load(json_params or {})
                 headers_schema and headers_schema().load(dict(header_params))
             except Exception as e:
                 return 'request error: %s' % ''.join(
@@ -199,12 +199,10 @@ def swagger_decorator(
             logger.info('response data\ndata: %s\ncode: %s\nheaders: %s\n', data, code, headers)
             try:
                 if response_schema and response_schema.get(code):
-                    data = data or {}
-                    response_schema.get(code)().load(data)
+                    response_schema.get(code)().load(data or {})
                     r_headers_schema = getattr(response_schema.get(code).Meta, 'headers', None)
                     if r_headers_schema:
                         r_headers_schema().load(headers or {})
-                response_schema and response_schema.get(code) and response_schema.get(code)().load(data)
             except Exception as e:
                 return 'response error: %s' % ''.join(
                     [('%s: %s; ' % (x, ''.join(y))) for x, y in e.messages.items()]), 400
