@@ -1,6 +1,6 @@
-# pymqtt
+# flasgger marshmallow
 
-pymqtt is a mqtt python client library extension meant to facilitate the integration of a MQTT client into your web application. Basically it is a thin wrapper around the paho-mqtt package to simplify MQTT integration in a python application. MQTT is a machine-to-machine (M2M)/”Internet of Things” (IoT) protocol which is designed as a lightweight publish/subscribe messaging transport. It comes very handy when trying to connect multiple IoT devices with each other or monitor and control these devices from one or multiple clients.
+code to swagger document.
 
 
 ## Installing
