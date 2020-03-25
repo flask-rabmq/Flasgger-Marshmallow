@@ -164,14 +164,25 @@ def swagger_decorator(
                 for code, current_schema in response_schema.items():
                     doc_dict['responses'][code] = {
                         'description': current_schema.__doc__,
-                        'properties': parse_json_schema(current_schema)
+                        'schema': {
+                            'type': 'object',
+                            "properties": parse_json_schema(current_schema),
+                        },
                     }
-                    if not doc_dict['responses'][code].get('properties'):
-                        doc_dict['responses'][code].update({'properties': None})
+                    if not doc_dict['responses'][code].get('schema', {}).get('properties'):
+                        doc_dict['responses'][code].update({'schema': None})
                     if getattr(current_schema.Meta, 'headers', None):
                         doc_dict['responses'][code].update(
                             {'headers': parse_json_schema(current_schema.Meta.headers)}
                         )
+                    produces = getattr(current_schema.Meta, 'produces', None)
+                    if produces:
+                        doc_dict.setdefault('produces', [])
+                        doc_dict['produces'].extend(produces)
+                        'application/xml' in produces and doc_dict['responses'][code]['schema'] and \
+                            doc_dict['responses'][code]['schema'].update(
+                                {'xml': {'name': getattr(current_schema.Meta, 'xml_root', 'xml')}}
+                            )
 
             ret_doc = """---\n""" + yaml.dump(doc_dict)
             return ret_doc
@@ -191,10 +202,10 @@ def swagger_decorator(
             )
             logger.info('headers: %s\n', header_params)
             try:
-                path_schema and path_schema().load(path_params or {})
-                query_schema and query_schema().load(query_params or {})
-                form_schema and form_schema().load(form_params or {})
-                json_schema and json_schema().load(json_params or {})
+                path_schema and path_schema().load(path_params)
+                query_schema and query_schema().load(query_params)
+                form_schema and form_schema().load(form_params)
+                json_schema and json_schema().load(json_params)
                 headers_schema and headers_schema().load(dict(header_params))
             except Exception as e:
                 return 'request error: %s' % ''.join(
@@ -204,10 +215,12 @@ def swagger_decorator(
             logger.info('response data\ndata: %s\ncode: %s\nheaders: %s\n', data, code, headers)
             try:
                 if response_schema and response_schema.get(code):
-                    response_schema.get(code)().load(data or {})
+                    data = data or {}
+                    response_schema.get(code)().load(data)
                     r_headers_schema = getattr(response_schema.get(code).Meta, 'headers', None)
                     if r_headers_schema:
                         r_headers_schema().load(headers or {})
+                response_schema and response_schema.get(code) and response_schema.get(code)().load(data)
             except Exception as e:
                 return 'response error: %s' % ''.join(
                     [('%s: %s; ' % (x, ''.join(y))) for x, y in e.messages.items()]), 400
