@@ -147,7 +147,7 @@ def swagger_decorator(
 
         def generate_doc():
             doc_dict = {}
-            if path_schema or query_schema or form_schema or json_schema:
+            if path_schema or query_schema or form_schema or json_schema or headers_schema:
                 doc_dict['parameters'] = []
             if path_schema:
                 doc_dict['parameters'].extend(parse_simple_schema(path_schema, 'path'))
