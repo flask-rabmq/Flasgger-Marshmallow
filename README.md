@@ -136,6 +136,9 @@ class User(Resource):
         """
         创建一个用户
         """
+        
+        # 获取校验后的数据
+        login.info(type(request.json_schema), request.json_schema)
         return {'id': 1}
 
     @swagger_decorator(query_schema=QueryUserSchema, response_schema={200: GetUserResponseSchema},
@@ -144,6 +147,9 @@ class User(Resource):
         """
         查询用户
         """
+
+        # 获取校验后的数据
+        login.info(type(request.query_schema), request.query_schema)
         return {'user_name': '陈小龙'}
 
     @swagger_decorator(query_schema=QueryUserSchema, response_schema={302: RedirectResponseSchema})
@@ -178,6 +184,9 @@ class Username(Resource):
         This examples uses FlaskRESTful Resource    # 这里是简介
         It works also with swag_from, schemas and spec_dict  # 这里是详情
         """
+
+        # 获取校验后的数据
+        login.info(type(request.path_schema), request.path_schema)
         return {'username': username}, 200
 
     @swagger_decorator(path_schema=UsernamePathSchema,
