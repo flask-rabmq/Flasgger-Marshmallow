@@ -180,9 +180,9 @@ def swagger_decorator(
                         doc_dict.setdefault('produces', [])
                         doc_dict['produces'].extend(produces)
                         'application/xml' in produces and doc_dict['responses'][code]['schema'] and \
-                            doc_dict['responses'][code]['schema'].update(
-                                {'xml': {'name': getattr(current_schema.Meta, 'xml_root', 'xml')}}
-                            )
+                        doc_dict['responses'][code]['schema'].update(
+                            {'xml': {'name': getattr(current_schema.Meta, 'xml_root', 'xml')}}
+                        )
 
             ret_doc = """---\n""" + yaml.dump(doc_dict)
             return ret_doc
@@ -194,7 +194,7 @@ def swagger_decorator(
             path_params = request.view_args
             query_params = request.args
             form_params = request.form
-            json_params = request.json
+            json_params = request.json if request._cached_data else {}
             header_params = request.headers
             logger.info(
                 'request params\npath params: %s\nquery params: %s\nform params: %s\njson params: %s\n',
