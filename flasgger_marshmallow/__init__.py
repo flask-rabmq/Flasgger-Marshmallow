@@ -78,7 +78,10 @@ def swagger_decorator(
         def parse_simple_schema(c_schema, location):
             ret = []
             for key, value in c_schema.__dict__.get('_declared_fields').items():
-                assert type(value) in FIELDS_JSON_TYPE_MAP, '不支持的%s类型' % str(type(value))
+                values_real_types = list(set(FIELDS_JSON_TYPE_MAP) & set(value.__class__.__mro__))
+                values_real_types.sort(key=value.__class__.__mro__.index)
+                if not values_real_types:
+                    raise '不支持的%s类型' % str(type(value))
                 tmp = {
                     'in': location,
                     'name': getattr(value, 'data_key', None) or key,
@@ -122,7 +125,10 @@ def swagger_decorator(
                     if not isinstance(value.default, _Missing):
                         tmp[key]['default'] = value.default
                 else:
-                    assert type(value) in FIELDS_JSON_TYPE_MAP, '不支持的%s类型' % str(type(value))
+                    values_real_types = list(set(FIELDS_JSON_TYPE_MAP) & set(value.__class__.__mro__))
+                    values_real_types.sort(key=value.__class__.__mro__.index)
+                    if not values_real_types:
+                        raise '不支持的%s类型' % str(type(value))
                     tmp[key] = {
                         'type': FIELDS_JSON_TYPE_MAP.get(type(value)),
                         'description': value.metadata.get('doc', ''),
