@@ -200,7 +200,7 @@ def swagger_decorator(
             path_params = request.view_args
             query_params = request.args
             form_params = request.form
-            json_params = request.json if request._get_data_for_json(cache=True) else {}
+            json_params = request.get_json(silent=True) or {}
             header_params = request.headers
             logger.info(
                 'request params\npath params: %s\nquery params: %s\nform params: %s\njson params: %s\n',
