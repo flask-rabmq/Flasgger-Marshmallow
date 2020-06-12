@@ -139,7 +139,7 @@ class User(Resource):
         """
 
         # 获取校验后的数据
-        logger.info(type(request.json_schema), request.json_schema)
+        logger.info('%s, %s', type(request.json_schema), request.json_schema)
         return {'id': 1}
 
     @swagger_decorator(query_schema=QueryUserSchema, response_schema={200: GetUserResponseSchema},
@@ -150,7 +150,7 @@ class User(Resource):
         """
 
         # 获取校验后的数据
-        logger.info(type(request.query_schema), request.query_schema)
+        logger.info('%s, %s', type(request.query_schema), request.query_schema)
         return {'user_name': '陈小龙'}
 
     @swagger_decorator(query_schema=QueryUserSchema, response_schema={302: RedirectResponseSchema})
@@ -187,7 +187,7 @@ class Username(Resource):
         """
 
         # 获取校验后的数据
-        logger.info(type(request.path_schema), request.path_schema)
+        logger.info('%s, %s', type(request.path_schema), request.path_schema)
         return {'username': username}, 200
 
     @swagger_decorator(path_schema=UsernamePathSchema,
