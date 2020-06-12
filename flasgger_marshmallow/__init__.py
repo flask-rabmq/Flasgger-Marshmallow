@@ -200,13 +200,15 @@ def swagger_decorator(
             path_params = request.view_args
             query_params = request.args
             form_params = request.form
-            json_params = request.json if request._get_data_for_json(cache=True) else {}
+            json_params = request.get_json(silent=True) or {}
             header_params = request.headers
             logger.info(
                 'request params\npath params: %s\nquery params: %s\nform params: %s\njson params: %s\n',
                 path_params, query_params, form_params, json_params
             )
             logger.info('headers: %s\n', header_params)
+            request.path_schema, request.path_schema, request.form_schema = [None] * 3
+            request.json_schema, request.headers_schema = [None] * 2
             try:
                 path_schema and setattr(request, 'path_schema', path_schema().load(path_params or {}))
                 query_schema and setattr(request, 'query_schema', query_schema().load(query_params or {}))
