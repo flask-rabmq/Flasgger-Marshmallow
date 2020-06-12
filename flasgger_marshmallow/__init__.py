@@ -85,7 +85,7 @@ def swagger_decorator(
                 tmp = {
                     'in': location,
                     'name': getattr(value, 'data_key', None) or key,
-                    'type': FIELDS_JSON_TYPE_MAP.get(type(value)),
+                    'type': FIELDS_JSON_TYPE_MAP.get(values_real_types[0]),
                     'required': value.required if location != 'path' else True,
                     'description': value.metadata.get('doc', '')
                 }
@@ -130,7 +130,7 @@ def swagger_decorator(
                     if not values_real_types:
                         raise '不支持的%s类型' % str(type(value))
                     tmp[key] = {
-                        'type': FIELDS_JSON_TYPE_MAP.get(type(value)),
+                        'type': FIELDS_JSON_TYPE_MAP.get(values_real_types[0]),
                         'description': value.metadata.get('doc', ''),
                         'required': value.required,
                     }
@@ -200,7 +200,7 @@ def swagger_decorator(
             path_params = request.view_args
             query_params = request.args
             form_params = request.form
-            json_params = request.json if request._cached_data else {}
+            json_params = request.json if request._get_data_for_json(cache=True) else {}
             header_params = request.headers
             logger.info(
                 'request params\npath params: %s\nquery params: %s\nform params: %s\njson params: %s\n',
