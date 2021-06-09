@@ -229,7 +229,8 @@ def swagger_decorator(
                         headers = r_headers_schema().load(headers or {})
             except Exception as e:
                 return 'response error: %s' % ''.join(
-                    [('%s: %s; ' % (x, ''.join(y))) for x, y in e.messages.items()]), 400
+                    [('%s: %s; ' % (x, ''.join([str(z) for z in y]))) for x, y in e.messages.items()]
+                ), 400
             return data, code, headers
 
         return wrapper
