@@ -27,7 +27,7 @@ AUTHOR_EMAIL = "cxiaolong6@gmail.com"
 
 URL = 'https://github.com/flask-rabmq/Flasgger-Marshmallow'
 
-VERSION = "0.0.5"
+VERSION = "0.0.6"
 
 LICENSE = "MIT"
 
