@@ -175,7 +175,9 @@ class Username(Resource):
 
     @swagger_decorator(path_schema=UsernamePathSchema,
                        form_schema=UpdateUserSchema,
-                       response_schema={200: UserDetailResponseSchema})
+                       response_schema={200: UserDetailResponseSchema},
+                       tags=["AAA"]
+                       )
     def put(self, username):
         """
         更新用户信息
