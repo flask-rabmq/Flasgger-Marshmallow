@@ -18,6 +18,7 @@ $ pip install -U Flasgger-Marshmallow
 import logging
 
 from flasgger import Swagger
+# use basePath   from flasgger_marshmallow import Swagger
 from flask import Flask, request
 from flask_restful import Api, Resource
 from marshmallow import Schema, fields
@@ -104,7 +105,11 @@ class responseHeadersSchema(Schema):
     X_RateLimit_Limit = fields.Integer(
         required=True, default=1, doc='Request limit per hour',
         data_key='X-RateLimit-Limit'
-    )
+    )  # marshmallow 3
+    # X_RateLimit_Limit = fields.Integer(
+    #     required=True, default=1, doc='Request limit per hour',
+    #     load_from='X-RateLimit-Limit', dump_to='X-RateLimit-Limit'
+    # ) # marshmallow 2
 
     class Meta:
         strict = True
@@ -151,7 +156,7 @@ class User(Resource):
 
         # 获取校验后的数据
         logger.info('%s, %s', type(request.query_schema), request.query_schema)
-        return {'user_name': '陈小龙'}
+        return {"count": 1, "page": 1, "users": [{'username': '陈小龙'}]}
 
     @swagger_decorator(query_schema=QueryUserSchema, response_schema={302: RedirectResponseSchema})
     def put(self):
@@ -192,7 +197,9 @@ class Username(Resource):
 
     @swagger_decorator(path_schema=UsernamePathSchema,
                        form_schema=UpdateUserSchema,
-                       response_schema={200: UserDetailResponseSchema})
+                       response_schema={200: UserDetailResponseSchema},
+                       tags=["AAA"]
+                       )
     def put(self, username):
         """
         更新用户信息

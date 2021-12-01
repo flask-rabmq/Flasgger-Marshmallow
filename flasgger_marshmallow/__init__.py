@@ -7,7 +7,12 @@ import marshmallow
 import yaml
 from flasgger.base import Swagger as FSwagger
 from flasgger.constants import OPTIONAL_FIELDS
-from flasgger.constants import OPTIONAL_OAS3_FIELDS
+try:
+    from flasgger.constants import OPTIONAL_OAS3_FIELDS
+except :
+    OPTIONAL_OAS3_FIELDS = [
+        'components', 'servers'
+    ]
 from flasgger.utils import extract_definitions
 from flasgger.utils import get_specs
 from flasgger.utils import get_vendor_extension_fields
@@ -44,12 +49,25 @@ FIELDS_JSON_TYPE_MAP = {
     fields.Int: 'number',
 }
 
-if int(marshmallow.__version__.split('.')[1]) == 3:
+if int(marshmallow.__version__.split('.')[0]) == 3:
     FIELDS_JSON_TYPE_MAP.update({
         fields.NaiveDateTime: 'string',
         fields.AwareDateTime: 'string',
         fields.Tuple: 'array',
     })
+
+
+def is_marsh_v3():
+    return int(marshmallow.__version__.split('.')[0]) == 3
+
+
+def data_schema(schema, data):
+    data = schema().load(data or {})
+    if not is_marsh_v3():
+        data = schema().dump(data.data).data
+    else:
+        data = schema().dump(data)
+    return data
 
 
 class Swagger(FSwagger):
@@ -323,9 +341,13 @@ def swagger_decorator(
                 values_real_types.sort(key=value.__class__.__mro__.index)
                 if not values_real_types:
                     raise '不支持的%s类型' % str(type(value))
+                if is_marsh_v3():
+                    name = getattr(value, 'data_key', None) or key
+                else:
+                    name = getattr(value, 'load_from', None) or key
                 tmp = {
                     'in': location,
-                    'name': getattr(value, 'data_key', None) or key,
+                    'name': name,
                     'type': FIELDS_JSON_TYPE_MAP.get(values_real_types[0]),
                     'required': value.required if location != 'path' else True,
                     'description': value.metadata.get('doc', '')
@@ -339,7 +361,10 @@ def swagger_decorator(
             tmp = {}
             for key, value in (
                     r_s.__dict__.get('_declared_fields') or r_s.__dict__.get('declared_fields') or {}).items():
-                key = getattr(value, 'data_key', None) or key
+                if is_marsh_v3():
+                    key = getattr(value, 'data_key', None) or key
+                else:
+                    key = getattr(value, 'load_from', None) or key
                 if isinstance(value, fields.Nested):
                     if value.many:
                         tmp[key] = {
@@ -453,19 +478,11 @@ def swagger_decorator(
             request.path_schema, request.path_schema, request.form_schema = [None] * 3
             request.json_schema, request.headers_schema = [None] * 2
             try:
-                if __version__.startswith('3.'):
-                    path_schema and setattr(request, 'path_schema', path_schema().load(path_params or {}))
-                    query_schema and setattr(request, 'query_schema', query_schema().load(query_params or {}))
-                    form_schema and setattr(request, 'form_schema', form_schema().load(form_params or {}))
-                    json_schema and setattr(request, 'json_schema', json_schema().load(json_params or {}))
-                    headers_schema and setattr(request, 'headers_schema', headers_schema().load(dict(header_params)))
-                else:
-                    path_schema and setattr(request, 'path_schema', path_schema().load(path_params or {}).data)
-                    query_schema and setattr(request, 'query_schema', query_schema().load(query_params or {}).data)
-                    form_schema and setattr(request, 'form_schema', form_schema().load(form_params or {}).data)
-                    json_schema and setattr(request, 'json_schema', json_schema().load(json_params or {}).data)
-                    headers_schema and setattr(request, 'headers_schema',
-                                               headers_schema().load(dict(header_params)).data)
+                path_schema and setattr(request, 'path_schema', data_schema(path_schema, path_params))
+                query_schema and setattr(request, 'query_schema', data_schema(query_schema, query_params))
+                form_schema and setattr(request, 'form_schema', data_schema(form_schema, form_params))
+                json_schema and setattr(request, 'json_schema', data_schema(json_schema, json_params))
+                headers_schema and setattr(request, 'headers_schema', data_schema(headers_schema, dict(header_params)))
             except Exception as e:
                 return 'request error: %s' % ''.join(
                     [('%s: %s; ' % (x, ''.join(y))) for x, y in e.messages.items()]), 400
@@ -474,12 +491,10 @@ def swagger_decorator(
             logger.info('response data\ndata: %s\ncode: %s\nheaders: %s\n', data, code, headers)
             try:
                 if response_schema and response_schema.get(code):
-                    data = response_schema.get(code)().load(data or {})
-                    if not __version__.startswith('3.'):
-                        data = data.data
+                    data = data_schema(response_schema.get(code), data)
                     r_headers_schema = getattr(response_schema.get(code).Meta, 'headers', None)
                     if r_headers_schema:
-                        headers = r_headers_schema().load(headers or {})
+                        headers = data_schema(r_headers_schema, headers)
             except Exception as e:
                 return 'response error: %s' % ''.join(
                     [('%s: %s; ' % (x, ''.join(y))) for x, y in e.messages.items()]), 400
