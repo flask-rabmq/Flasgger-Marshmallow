@@ -1,3 +1,4 @@
+import copy
 import functools
 import logging
 import re
@@ -330,9 +331,20 @@ def swagger_decorator(
         path_schema=None, query_schema=None,
         form_schema=None, json_schema=None,
         headers_schema=None, response_schema=None,
-        tags=None
+        tags=None, max_length_log=None
 ):
     def decorator(func):
+
+        def limit_log_length(content):
+            current_content = copy.deepcopy(content)
+            if max_length_log and len(current_content.__str__()) > max_length_log:
+                current_content = current_content.__str__()
+                return "%s...%s" % (current_content[:int(max_length_log/2)], current_content[-int(max_length_log/2):])
+            return current_content
+
+        def log_format(content):
+            content = limit_log_length(content)
+            return content
 
         def parse_simple_schema(c_schema, location):
             ret = []
@@ -472,7 +484,7 @@ def swagger_decorator(
             header_params = request.headers
             logger.info(
                 'request params\npath params: %s\nquery params: %s\nform params: %s\njson params: %s\n',
-                path_params, query_params, form_params, json_params
+                log_format(path_params), log_format(query_params), log_format(form_params), log_format(json_params)
             )
             logger.info('headers: %s\n', header_params)
             request.path_schema, request.path_schema, request.form_schema = [None] * 3
@@ -488,7 +500,7 @@ def swagger_decorator(
                     [('%s: %s; ' % (x, ''.join(y))) for x, y in e.messages.items()]), 400
             f_result = func(*args, **kw)
             data, code, headers = unpack(f_result)
-            logger.info('response data\ndata: %s\ncode: %s\nheaders: %s\n', data, code, headers)
+            logger.info('response data\ndata: %s\ncode: %s\nheaders: %s\n', log_format(data), code, headers)
             try:
                 if response_schema and response_schema.get(code):
                     data = data_schema(response_schema.get(code), data)

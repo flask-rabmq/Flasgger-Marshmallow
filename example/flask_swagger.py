@@ -120,7 +120,10 @@ class RedirectResponseSchema(Schema):
 
 class User(Resource):
 
-    @swagger_decorator(json_schema=CreateUserJsonSchema, response_schema={200: CreateUserSuccessResponse})
+    @swagger_decorator(
+        json_schema=CreateUserJsonSchema,
+        response_schema={200: CreateUserSuccessResponse},
+    )
     def post(self):
         """
         创建一个用户
@@ -130,8 +133,12 @@ class User(Resource):
         logger.info('%s, %s', type(request.json_schema), request.json_schema)
         return {'id': 1}
 
-    @swagger_decorator(query_schema=QueryUserSchema, response_schema={200: GetUserResponseSchema},
-                       headers_schema=HeadersSchema)
+    @swagger_decorator(
+        query_schema=QueryUserSchema,
+        response_schema={200: GetUserResponseSchema},
+        headers_schema=HeadersSchema,
+        max_length_log=10
+    )
     def get(self):
         """
         查询用户
