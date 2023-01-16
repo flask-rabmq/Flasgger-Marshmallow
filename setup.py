@@ -31,7 +31,7 @@ VERSION = "0.0.9"
 
 LICENSE = "MIT"
 
-INSTALL_REQUIRES = ["flask>=1.0.0, <2.0.0", "Jinja2>=2.10.1, <3.0", "flasgger>=0.9.3", "marshmallow>=2.18.1", "PyYAML"]
+INSTALL_REQUIRES = ["flask>=1.0.0", "Jinja2>=2.10.1", "flasgger>=0.9.3", "marshmallow>=2.18.1", "PyYAML"]
 
 setup(
     name=NAME,
