@@ -36,7 +36,7 @@ FIELDS_JSON_TYPE_MAP = {
     fields.Number: 'number',
     fields.Integer: 'number',
     fields.Decimal: 'number',
-    fields.Boolean: 'bool',
+    fields.Boolean: 'boolean',
     fields.Float: 'number',
     fields.DateTime: 'string',
     fields.Time: 'string',
@@ -46,7 +46,7 @@ FIELDS_JSON_TYPE_MAP = {
     fields.URL: 'string',
     fields.Email: 'string',
     fields.Str: 'string',
-    fields.Bool: 'bool',
+    fields.Bool: 'boolean',
     fields.Int: 'number',
 }
 
