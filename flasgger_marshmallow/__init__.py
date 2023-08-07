@@ -65,7 +65,7 @@ class Swagger(FSwagger):
                 break
         if not spec:
             raise RuntimeError(
-                'Can`t find specs by endpoint {:d},'
+                'Can`t find specs by endpoint {:s},'
                 ' check your flasger`s config'.format(endpoint))
 
         data = {
@@ -323,9 +323,10 @@ def swagger_decorator(
                 values_real_types.sort(key=value.__class__.__mro__.index)
                 if not values_real_types:
                     raise '不支持的%s类型' % str(type(value))
+                name = value.metadata.get('data_key', '') or getattr(value, 'load_from', None) or key
                 tmp = {
                     'in': location,
-                    'name': getattr(value, 'data_key', None) or key,
+                    'name': name,
                     'type': FIELDS_JSON_TYPE_MAP.get(values_real_types[0]),
                     'required': value.required if location != 'path' else True,
                     'description': value.metadata.get('doc', '')
@@ -339,7 +340,7 @@ def swagger_decorator(
             tmp = {}
             for key, value in (
                     r_s.__dict__.get('_declared_fields') or r_s.__dict__.get('declared_fields') or {}).items():
-                key = getattr(value, 'data_key', None) or key
+                key = value.metadata.get('data_key', '') or getattr(value, 'load_from', None) or key
                 if isinstance(value, fields.Nested):
                     if value.many:
                         tmp[key] = {

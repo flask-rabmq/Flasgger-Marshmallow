@@ -27,11 +27,11 @@ AUTHOR_EMAIL = "cxiaolong6@gmail.com"
 
 URL = 'https://github.com/flask-rabmq/Flasgger-Marshmallow'
 
-VERSION = "0.0.7"
+VERSION = "0.2.0"
 
 LICENSE = "MIT"
 
-INSTALL_REQUIRES = ["flask>=1.0.0", "flasgger>=0.9.3", "marshmallow>=2.18.1", "PyYAML"]
+INSTALL_REQUIRES = ["flask>=1.0.0", "flasgger>=0.9.5", "marshmallow>=2.18.1, <3.0.0", "PyYAML"]
 
 setup(
     name=NAME,
