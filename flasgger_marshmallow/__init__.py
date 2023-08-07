@@ -22,6 +22,7 @@ from flask import request
 from marshmallow import __version__
 from marshmallow import fields
 from marshmallow.utils import _Missing
+from marshmallow_enum import EnumField
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ FIELDS_JSON_TYPE_MAP = {
     fields.Number: 'number',
     fields.Integer: 'number',
     fields.Decimal: 'number',
-    fields.Boolean: 'bool',
+    fields.Boolean: 'boolean',
     fields.Float: 'number',
     fields.DateTime: 'string',
     fields.Time: 'string',
@@ -46,7 +47,7 @@ FIELDS_JSON_TYPE_MAP = {
     fields.URL: 'string',
     fields.Email: 'string',
     fields.Str: 'string',
-    fields.Bool: 'bool',
+    fields.Bool: 'boolean',
     fields.Int: 'number',
 }
 
@@ -56,7 +57,12 @@ if int(marshmallow.__version__.split('.')[0]) == 3:
         fields.AwareDateTime: 'string',
         fields.Tuple: 'array',
     })
-
+    
+include_enums = True
+if include_enums:
+    FIELDS_JSON_TYPE_MAP.update({
+        EnumField: 'enum'
+    })
 
 def is_marsh_v3():
     return int(marshmallow.__version__.split('.')[0]) == 3
@@ -352,7 +358,7 @@ def swagger_decorator(
                 values_real_types = list(set(FIELDS_JSON_TYPE_MAP) & set(value.__class__.__mro__))
                 values_real_types.sort(key=value.__class__.__mro__.index)
                 if not values_real_types:
-                    raise '不支持的%s类型' % str(type(value))
+                    raise TypeError('Unsupported %s type' % str(type(value)))
                 if is_marsh_v3():
                     name = getattr(value, 'data_key', None) or key
                 else:
@@ -406,7 +412,7 @@ def swagger_decorator(
                     values_real_types = list(set(FIELDS_JSON_TYPE_MAP) & set(value.__class__.__mro__))
                     values_real_types.sort(key=value.__class__.__mro__.index)
                     if not values_real_types:
-                        raise '不支持的%s类型' % str(type(value))
+                        raise TypeError('Unsupported %s type' % str(type(value)))
                     tmp[key] = {
                         'type': FIELDS_JSON_TYPE_MAP.get(values_real_types[0]),
                         'description': value.metadata.get('doc', ''),
@@ -421,7 +427,7 @@ def swagger_decorator(
                 'in': 'body',
                 'name': 'body',
                 'required': True,
-                'description': 'json 类型的body',
+                'description': 'json type of body',
                 'schema': {
                     'properties': parse_json_schema(c_schema),
                     'type': 'object',
