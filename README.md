@@ -12,13 +12,22 @@ $ pip install -U Flasgger-Marshmallow
 ```
 
 
+## Data conversion process
+
+### request start data convert
+
+`| **http object** |`  ---**flask convert**--> `| **flask request** |` ---**flasgger-marshmallow(marshmallow load method)**--> `| **python dict** |`
+
+### response start data convert
+
+`| **python dict** |` ---**flasgger-marshmallow(marshmallow load method first, then dump method)**--> `| **flask response** |` ---**flask convert**--> `| **http object** |`     
+
 ## A Simple Example
 
 ```python
 import logging
 
 from flasgger import Swagger
-# use basePath   from flasgger_marshmallow import Swagger
 from flask import Flask, request
 from flask_restful import Api, Resource
 from marshmallow import Schema, fields

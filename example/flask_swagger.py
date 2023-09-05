@@ -1,16 +1,19 @@
 import logging
 
 from flasgger import Swagger
-# use basePath   from flasgger_marshmallow import Swagger
-from flask import Flask, request
-from flask_restful import Api, Resource
-from marshmallow import Schema, fields
+from flask import Flask
+from flask import request
+from flask_restful import Api
+from flask_restful import Resource
+from marshmallow import Schema
+from marshmallow import fields
+
 from flasgger_marshmallow import swagger_decorator
 
 logging.basicConfig(
     filemode="w",
     format="%(asctime)s-%(name)s-%(levelname)s--%(process)d-%(thread)d-%(threadName)s-%(message)s",
-    level=logging.INFO
+    level=logging.INFO,
 )
 
 logger = logging.getLogger(__name__)
@@ -21,24 +24,24 @@ swagger = Swagger(app)
 
 
 class MobileSchema(Schema):
-    model = fields.String(required=True, doc='手机型号')
-    no = fields.String(required=True, doc='手机编号')
+    model = fields.String(required=True, doc="手机型号")
+    no = fields.String(required=True, doc="手机编号")
 
     class Meta:
         strict = True
 
 
 class UserJsonSchema(Schema):
-    username = fields.Str(required=True, doc='用户名')
-    age = fields.Integer(required=False, default=0, doc='年龄')
-    qq = fields.List(fields.String, required=False, doc='用户QQ号')
-    email = fields.Email(required=False, doc='邮箱')
-    image = fields.URL(required=False, doc='用户头像')
+    username = fields.Str(required=True, doc="用户名")
+    age = fields.Integer(required=False, default=0, doc="年龄")
+    qq = fields.List(fields.String, required=False, doc="用户QQ号")
+    email = fields.Email(required=False, doc="邮箱")
+    image = fields.URL(required=False, doc="用户头像")
     mobile = fields.Nested(MobileSchema, many=False)
 
     class Meta:
         strict = True
-        unknown = 'EXCLUDE'  # 参数中对多余字段处理 EXCLUDE`-排除, `INCLUDE`-不处理 or `RAISE`-抛异常.
+        unknown = "EXCLUDE"  # 参数中对多余字段处理 EXCLUDE`-排除, `INCLUDE`-不处理 or `RAISE`-抛异常.
 
 
 class CreateUserJsonSchema(UserJsonSchema):
@@ -56,8 +59,8 @@ class CreateUserSuccessResponse(Schema):
 
 
 class QueryUserSchema(Schema):
-    id = fields.Int(required=False, doc='用户ID')
-    username = fields.String(required=False, doc='用户名')
+    id = fields.Int(required=False, doc="用户ID")
+    username = fields.String(required=False, doc="用户名")
 
     class Meta:
         strict = True
@@ -67,9 +70,10 @@ class GetUserResponseSchema(Schema):
     """
     返回符合条件的用户列表
     """
-    users = fields.Nested(UserJsonSchema, many=True, doc='用户列表')
-    count = fields.Integer(required=True, default=0, doc='用户数量')
-    page = fields.Integer(required=True, default=1, doc='当前页码')
+
+    users = fields.Nested(UserJsonSchema, many=True, doc="用户列表")
+    count = fields.Integer(required=True, default=0, doc="用户数量")
+    page = fields.Integer(required=True, default=1, doc="当前页码")
 
     class Meta:
         strict = True
@@ -77,6 +81,7 @@ class GetUserResponseSchema(Schema):
 
 class UserDetailResponseSchema(UserJsonSchema):
     """用户详情"""
+
     pass
 
     class Meta:
@@ -84,15 +89,13 @@ class UserDetailResponseSchema(UserJsonSchema):
 
 
 class responseHeadersSchema(Schema):
-    Location = fields.String(required=True, default=1, doc='跳转地址')
+    Location = fields.String(required=True, default=1, doc="跳转地址")
     X_RateLimit_Limit = fields.Integer(
-        required=True, default=1, doc='Request limit per hour',
-        data_key='X-RateLimit-Limit'
-    )  # marshmallow 3
-    # X_RateLimit_Limit = fields.Integer(
-    #     required=True, default=1, doc='Request limit per hour',
-    #     load_from='X-RateLimit-Limit', dump_to='X-RateLimit-Limit'
-    # ) # marshmallow 2
+        required=True,
+        default=1,
+        doc="Request limit per hour",
+        data_key="X-RateLimit-Limit",
+    )
 
     class Meta:
         strict = True
@@ -100,8 +103,7 @@ class responseHeadersSchema(Schema):
 
 class HeadersSchema(Schema):
     Login_Credential = fields.String(
-        required=True, doc='登录凭证',
-        data_key='Login-Credential'
+        required=True, doc="登录凭证", data_key="Login-Credential"
     )
 
     class Meta:
@@ -119,7 +121,6 @@ class RedirectResponseSchema(Schema):
 
 
 class User(Resource):
-
     @swagger_decorator(
         json_schema=CreateUserJsonSchema,
         response_schema={200: CreateUserSuccessResponse},
@@ -130,14 +131,14 @@ class User(Resource):
         """
 
         # 获取校验后的数据
-        logger.info('%s, %s', type(request.json_schema), request.json_schema)
-        return {'id': 1}
+        logger.info("%s, %s", type(request.json_schema), request.json_schema)
+        return {"id": 1}
 
     @swagger_decorator(
         query_schema=QueryUserSchema,
         response_schema={200: GetUserResponseSchema},
         headers_schema=HeadersSchema,
-        max_length_log=10
+        max_length_log=10,
     )
     def get(self):
         """
@@ -145,35 +146,39 @@ class User(Resource):
         """
 
         # 获取校验后的数据
-        logger.info('%s, %s', type(request.query_schema), request.query_schema)
-        return {"count": 1, "page": 1, "users": [{'username': '陈小龙'}]}
+        logger.info("%s, %s", type(request.query_schema), request.query_schema)
+        return {"count": 1, "page": 1, "users": [{"username": "陈小龙"}]}
 
-    @swagger_decorator(query_schema=QueryUserSchema, response_schema={302: RedirectResponseSchema})
+    @swagger_decorator(
+        query_schema=QueryUserSchema, response_schema={302: RedirectResponseSchema}
+    )
     def put(self):
         """重定向实例"""
-        return None, 302, {'Location': 'http://www.baidu.com', 'X-RateLimit-Limit': 2000}
+        return (
+            None,
+            302,
+            {"Location": "http://www.baidu.com", "X-RateLimit-Limit": 2000},
+        )
 
 
 class UsernamePathSchema(Schema):
-    username = fields.String(required=False, doc='用户名')
+    username = fields.String(required=False, doc="用户名")
 
     class Meta:
         strict = True
 
 
 class UpdateUserSchema(Schema):
-    email = fields.Email(required=False, doc='用户邮箱')
-    image = fields.Url(required=False, doc='用户头像')
+    email = fields.Email(required=False, doc="用户邮箱", data_key="Email")
+    image = fields.Url(required=False, doc="用户头像")
 
     class Meta:
         strict = True
 
 
 class Username(Resource):
-
     @swagger_decorator(
-        path_schema=UsernamePathSchema,
-        response_schema={200: UserDetailResponseSchema}
+        path_schema=UsernamePathSchema, response_schema={200: UserDetailResponseSchema}
     )
     def get(self, username):
         """
@@ -182,22 +187,23 @@ class Username(Resource):
         """
 
         # 获取校验后的数据
-        logger.info('%s, %s', type(request.path_schema), request.path_schema)
-        return {'username': username}, 200
+        logger.info("%s, %s", type(request.path_schema), request.path_schema)
+        return {"username": username}, 200
 
-    @swagger_decorator(path_schema=UsernamePathSchema,
-                       form_schema=UpdateUserSchema,
-                       response_schema={200: UserDetailResponseSchema},
-                       tags=["AAA"]
-                       )
+    @swagger_decorator(
+        path_schema=UsernamePathSchema,
+        form_schema=UpdateUserSchema,
+        response_schema={200: UserDetailResponseSchema},
+        tags=["AAA"],
+    )
     def put(self, username):
         """
         更新用户信息
         """
-        return {'username': username}, 200
+        return {"username": username}, 200
 
 
-api.add_resource(Username, '/username/<username>')
-api.add_resource(User, '/users')
+api.add_resource(Username, "/username/<username>")
+api.add_resource(User, "/users")
 
 app.run(debug=True)
