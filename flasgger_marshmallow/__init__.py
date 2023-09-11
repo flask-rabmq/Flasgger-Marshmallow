@@ -481,6 +481,8 @@ def swagger_decorator(
                     r_headers_schema = getattr(response_schema.get(code).Meta, 'headers', None)
                     if r_headers_schema:
                         headers = r_headers_schema().load(headers or {})
+                    if not __version__.startswith('3.'):
+                        headers = headers.data
             except Exception as e:
                 return 'response error: %s' % ''.join(
                     [('%s: %s; ' % (x, ''.join(y))) for x, y in e.messages.items()]), 400
