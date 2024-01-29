@@ -15,6 +15,7 @@ from flasgger.utils import parse_definition_docstring
 from flask import request
 from marshmallow import __version__
 from marshmallow import fields
+from marshmallow import ValidationError
 from marshmallow.utils import _Missing
 
 logger = logging.getLogger(__name__)
@@ -437,6 +438,19 @@ def swagger_decorator(
             ret_doc = """---\n""" + yaml.dump(doc_dict)
             return ret_doc
 
+        def low_version_parse_schema(schema_class, schema_params):
+            """
+            低版本的marshmallow load时校验结果放在errors里的
+
+            :param schema_class:
+            :param schema_params:
+            :return:
+            """
+            load_result = schema_class().load(schema_params or {})
+            if load_result.errors:
+                raise ValidationError(message=load_result.errors)
+            return load_result.data
+
         func.__doc__ = (func.__doc__.strip() + generate_doc()) if func.__doc__ else generate_doc()
 
         @functools.wraps(func)
@@ -461,12 +475,13 @@ def swagger_decorator(
                     json_schema and setattr(request, 'json_schema', json_schema().load(json_params or {}))
                     headers_schema and setattr(request, 'headers_schema', headers_schema().load(dict(header_params)))
                 else:
-                    path_schema and setattr(request, 'path_schema', path_schema().load(path_params or {}).data)
-                    query_schema and setattr(request, 'query_schema', query_schema().load(query_params or {}).data)
-                    form_schema and setattr(request, 'form_schema', form_schema().load(form_params or {}).data)
-                    json_schema and setattr(request, 'json_schema', json_schema().load(json_params or {}).data)
+                    path_schema and setattr(request, 'path_schema', low_version_parse_schema(path_schema, path_params))
+                    query_schema and setattr(request, 'query_schema',
+                                             low_version_parse_schema(query_schema, query_params))
+                    form_schema and setattr(request, 'form_schema', low_version_parse_schema(form_schema, form_params))
+                    json_schema and setattr(request, 'json_schema', low_version_parse_schema(json_schema, json_params))
                     headers_schema and setattr(request, 'headers_schema',
-                                               headers_schema().load(dict(header_params)).data)
+                                               low_version_parse_schema(headers_schema, dict(header_params)))
             except Exception as e:
                 return 'request error: %s' % ''.join(
                     [('%s: %s; ' % (x, ''.join(y))) for x, y in e.messages.items()]), 400
