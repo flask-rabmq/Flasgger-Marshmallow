@@ -64,9 +64,13 @@ def data_schema(schema, data, is_request=True):
     :return:
     :rtype:
     """
-    data = schema().load(data or {})
-    if not is_request:
-        data = schema().dump(data)
+    cs = schema()
+    data = cs.load(data or {})
+    if not is_request and (
+            getattr(cs, "Meta", None) and getattr(cs.Meta, "unknown", "") == "exclude" or
+            cs.unknown == "exclude"
+    ):
+        data = cs.dump(data)
     return data
 
 
